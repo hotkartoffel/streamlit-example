@@ -3,6 +3,9 @@
 # and commit this file to your remote git repository to share the goodness with others.
 
 tasks:
-  - init: pip install -r requirements.txt
+  - init: python3 -m venv env \
+          source env/bin/activate \
+          pip install -r requirements.txt
+          
 
 
