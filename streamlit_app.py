@@ -4,7 +4,7 @@ import math
 import pandas as pd
 import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
-from gpt_index import GPTTreeIndex, SimpleDirectoryReader
+from gpt_index import GPTTreeIndex 
 from gpt_index.readers.schema.base import Document
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
