@@ -3,36 +3,70 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
-
-"""
-# Welcome to Streamlit!
-
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
-
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+from youtube_transcript_api import YouTubeTranscriptApi
+from gpt_index import GPTTreeIndex, SimpleDirectoryReader
+from gpt_index.readers.schema.base import Document
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
 
 
-with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+st.title('Summarize a youtube video')
 
-    Point = namedtuple('Point', 'x y')
-    data = []
 
-    points_per_turn = total_points / num_turns
+def get_transcript(item_id: str):
+    transcript = YouTubeTranscriptApi.get_transcript(item_id)
+    return transcript
 
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
+def get_summary_from_transcript(transcript, query):
+    results = []
+    for line in transcript:
+        results.append(Document(line.get('text')))
 
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+    index = GPTTreeIndex(results)
+    response = index.query(query)
+    return response
+
+
+def get_video_id_from_link(url):
+    parsed_url = urlparse(url)
+    captured_value = parse_qs(parsed_url.query)['v'][0]
+    return captured_value
+
+
+def main():
+    # get youtube link
+    st.title('Video Examples', )
+    st.text('https://www.youtube.com/watch?v=HXesSmxVNMs')
+    st.text('https://www.youtube.com/watch?v=IMvffRnRO0E')
+    st.title('Alteration examples')
+    st.text('Get ingredients and procedure')
+    st.text('Create a shopping list')
+    st.text('Convert to metric system')
+    url = st.text_input('What video do you want to use?', '',
+                        placeholder="https://www.youtube.com/watch?v=HXesSmxVNMs")
+
+    query = st.text_input('What do you want to do with it?',
+                          placeholder="Get ingredients and procedure", )
+
+    if not url:
+        return
+    if not query:
+        return
+
+    # extra video id
+    videoId = get_video_id_from_link(url)
+    transcript = get_transcript(videoId)
+
+    # Show loading
+    data_load_state = st.text('Loading data...')
+    # Get summary
+    summary = get_summary_from_transcript(transcript, query)
+    data_load_state.text('Done')
+    # Display summary
+    st.text(summary)
+
+    # Display full transcript
+    st.text(transcript)
+
+
+main()
