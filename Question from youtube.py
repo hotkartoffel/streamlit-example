@@ -36,7 +36,7 @@ def get_video_id_from_link(url):
 
 
 def transform(url, query):
-    st.subheader('Summary')
+    st.subheader('Answer')
     summary_container = st.caption('Loading...')
     videoId = get_video_id_from_link(url)
     # Show loading
