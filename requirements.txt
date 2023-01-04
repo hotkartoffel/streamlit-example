@@ -1,3 +1,5 @@
 altair
 pandas
 streamlit
+youtube_transcript_api
+gpt-index
